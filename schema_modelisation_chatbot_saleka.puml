@@ -1,0 +1,557 @@
+@startuml
+
+' ============================================
+' DIAGRAMME DE CLASSES COMPLET - CHATBOT SALEKA
+' ============================================
+
+package "Interface Utilisateur" {
+    class InterfaceChat {
+        - id: String
+        - statut: String
+        + afficherMessage(message: Message)
+        + saisirMessage(contenu: String)
+        + transfererHumain()
+        + afficherSuggestions(suggestions: List)
+    }
+}
+
+package "Couche Application" {
+    class GestionnaireDialogue {
+        - etatCourant: EtatDialogue
+        - historiqueEtats: List<EtatDialogue>
+        - regles: List<Regle>
+        + traiterMessage(message: Message): Reponse
+        + determinerReponse(intention: Intention, entites: List<Entite>): Reponse
+        + mettreAJourContexte(contexte: Contexte)
+        + detecterEscalade(): Boolean
+        + transfererConversation(agent: AgentSupport)
+    }
+
+    class MoteurNLP {
+        - modeleLangage: Modele
+        - seuilConfiance: Float
+        + analyser(message: String): AnalyseNLP
+        + extraireEntites(texte: String): List<Entite>
+        + classifierIntention(texte: String): Intention
+        + tokeniser(texte: String): List<Token>
+        + lemmatiser(texte: String): List<Token>
+    }
+
+    class GenerateurReponses {
+        + genererReponse(intention: Intention, contexte: Contexte): Reponse
+        + selectionnerTemplate(intention: Intention): Template
+        + personnaliserReponse(template: Template, utilisateur: Utilisateur): Reponse
+        + genererReponseDefaut(): Reponse
+    }
+}
+
+package "Couche Données" {
+    class BaseConnaissances {
+        - intentions: List<Intention>
+        - entites: List<Entite>
+        - categories: List<Categorie>
+        + rechercherIntention(expression: String): Intention
+        + ajouterIntention(intention: Intention)
+        + mettreAJourIntention(id: String, intention: Intention)
+        + exporter(): JSON
+        + importer(json: JSON)
+    }
+
+    class Conversation {
+        - id: String
+        - idUtilisateur: String
+        - dateDebut: DateTime
+        - dateFin: DateTime
+        - statut: String
+        - contexte: Contexte
+        + ajouterMessage(message: Message)
+        + obtenirContexte(): Contexte
+        + transfererHumain(agent: AgentSupport)
+        + archiver()
+        + obtenirHistorique(): List<Message>
+    }
+
+    class Message {
+        - id: String
+        - contenu: String
+        - type: TypeMessage
+        - horodatage: DateTime
+        - idConversation: String
+        + formater(): String
+        + valider(): Boolean
+        + obtenirType(): TypeMessage
+    }
+
+    class Utilisateur {
+        - id: String
+        - nom: String
+        - email: String
+        - profil: Profil
+        - dateCreation: DateTime
+        - derniereConnexion: DateTime
+        + connecter()
+        + deconnecter()
+        + mettreAJourProfil(profil: Profil)
+        + obtenirHistorique(): List<Conversation>
+    }
+
+    class Intention {
+        - id: String
+        - nom: String
+        - description: String
+        - expressions: List<String>
+        - reponses: List<String>
+        - categorie: Categorie
+        + reconnaitre(expression: String): Float
+        + ajouterExpression(expression: String)
+        + ajouterReponse(reponse: String)
+        + obtenirCategorie(): Categorie
+    }
+
+    class Entite {
+        - id: String
+        - nom: String
+        - type: TypeEntite
+        - valeurs: List<String>
+        - patterns: List<Pattern>
+        + extraire(texte: String): List<Match>
+        + ajouterValeur(valeur: String)
+        + ajouterPattern(pattern: Pattern)
+    }
+
+    class Contexte {
+        - variables: Map<String, Object>
+        - historiqueMessages: List<Message>
+        - intentionCourante: Intention
+        + ajouterVariable(cle: String, valeur: Object)
+        + obtenirVariable(cle: String): Object
+        + mettreAJourIntention(intention: Intention)
+        + obtenirHistorique(): List<Message>
+    }
+}
+
+package "Support Humain" {
+    class AgentSupport {
+        - id: String
+        - nom: String
+        - specialite: String
+        - statut: String
+        - conversationsAssignees: List<Conversation>
+        + prendreConversation(conversation: Conversation)
+        + repondre(message: String)
+        + transferer(conversation: Conversation, agent: AgentSupport)
+        + obtenirStatistiques(): Statistiques
+    }
+}
+
+package "Intégration Plateforme" {
+    class Authentification {
+        + verifierToken(token: String): Utilisateur
+        + genererToken(utilisateur: Utilisateur): String
+        + rafraichirToken(token: String): String
+    }
+
+    class APIPlateforme {
+        + obtenirProfilUtilisateur(id: String): Profil
+        + naviguerVersSection(section: String)
+        + creerTicket(ticket: Ticket)
+        + obtenirDocumentation(section: String): Document
+    }
+}
+
+' ============================================
+' RELATIONS ENTRE LES CLASSES
+' ============================================
+
+' Utilisateur et Conversation
+Utilisateur "1" -- "*" Conversation : possède
+
+' Conversation et Message
+Conversation "1" -- "*" Message : contient
+
+' GestionnaireDialogue et MoteurNLP
+GestionnaireDialogue ..> MoteurNLP : utilise
+
+' GestionnaireDialogue et BaseConnaissances
+GestionnaireDialogue ..> BaseConnaissances : interroge
+
+' MoteurNLP et BaseConnaissances
+MoteurNLP ..> BaseConnaissances : utilise
+
+' GestionnaireDialogue et GenerateurReponses
+GestionnaireDialogue ..> GenerateurReponses : utilise
+
+' GenerateurReponses et BaseConnaissances
+GenerateurReponses ..> BaseConnaissances : utilise
+
+' Intention et Entite
+Intention "1" -- "*" Entite : contient
+
+' Conversation et Contexte
+Conversation "1" -- "1" Contexte : maintient
+
+' GestionnaireDialogue et Contexte
+GestionnaireDialogue ..> Contexte : gère
+
+' Conversation et AgentSupport
+Conversation "*" -- "*" AgentSupport : peut être transférée à
+
+' InterfaceChat et GestionnaireDialogue
+InterfaceChat ..> GestionnaireDialogue : communique avec
+
+' GestionnaireDialogue et AgentSupport
+GestionnaireDialogue ..> AgentSupport : transfère vers
+
+' Authentification et Utilisateur
+Authentification ..> Utilisateur : authentifie
+
+' GestionnaireDialogue et APIPlateforme
+GestionnaireDialogue ..> APIPlateforme : intègre avec
+
+' InterfaceChat et Utilisateur
+InterfaceChat ..> Utilisateur : utilisée par
+
+@enduml
+
+' ============================================
+' DIAGRAMME DE SÉQUENCE - SCÉNARIO PRINCIPAL
+' ============================================
+
+@startuml
+actor Utilisateur
+participant "InterfaceChat" as UI
+participant "GestionnaireDialogue" as GD
+participant "MoteurNLP" as NLP
+participant "BaseConnaissances" as BC
+participant "GenerateurReponses" as GR
+
+Utilisateur -> UI: Envoie message
+UI -> GD: transmetMessage(message)
+GD -> NLP: analyser(message.contenu)
+NLP -> NLP: tokeniser()
+NLP -> NLP: lemmatiser()
+NLP -> NLP: extraireEntites()
+NLP -> BC: rechercherIntention(expression)
+BC --> NLP: retourneIntention()
+NLP -> NLP: classifierIntention()
+NLP --> GD: retourneAnalyse(intention, entites)
+GD -> GD: determinerReponse(intention, entites)
+GD -> GR: genererReponse(intention, contexte)
+GR -> BC: selectionnerTemplate(intention)
+BC --> GR: retourneTemplate()
+GR -> GR: personnaliserReponse(template, utilisateur)
+GR --> GD: retourneReponse()
+GD -> GD: mettreAJourContexte()
+GD --> UI: retourneReponse()
+UI -> UI: afficherMessage(reponse)
+UI --> Utilisateur: affiche réponse
+
+alt Si chatbot ne peut pas répondre
+    GD -> GD: detecterEscalade()
+    GD -> UI: proposerTransfert()
+    UI -> Utilisateur: affiche proposition de transfert
+    Utilisateur -> UI: accepteTransfert()
+    UI -> GD: confirmerTransfert()
+    GD -> GD: transfererConversation(agent)
+end
+
+@enduml
+
+' ============================================
+' DIAGRAMME DE CAS D'UTILISATION
+' ============================================
+
+@startuml
+actor Utilisateur as U
+actor Administrateur as A
+actor AgentSupport as AS
+
+rectangle "Chatbot SaLeKa" {
+    usecase "Poser une question" as UC1
+    usecase "Obtenir une réponse automatique" as UC2
+    usecase "Demander une clarification" as UC3
+    usecase "Transférer vers support humain" as UC4
+    usecase "Naviguer dans la plateforme" as UC5
+    usecase "Noter la réponse" as UC6
+    usecase "Voir l'historique" as UC7
+    usecase "Gérer la base de connaissances" as UC8
+    usecase "Voir les statistiques" as UC9
+    usecase "Prendre en charge une conversation" as UC10
+    usecase "Répondre à un utilisateur" as UC11
+}
+
+U --> UC1
+U --> UC2
+U --> UC3
+U --> UC4
+U --> UC5
+U --> UC6
+U --> UC7
+
+A --> UC8
+A --> UC9
+
+AS --> UC10
+AS --> UC11
+
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<extend>>
+UC1 ..> UC4 : <<extend>>
+UC2 ..> UC5 : <<extend>>
+
+@enduml
+
+' ============================================
+' DIAGRAMME D'ARCHITECTURE
+' ============================================
+
+@startuml
+package "Couche Présentation" {
+    [Interface Web]
+    [Widget Chat]
+    [Panneau Admin]
+}
+
+package "Couche Application" {
+    [API REST]
+    [Moteur NLP]
+    [Gestionnaire Dialogue]
+    [Générateur Réponses]
+}
+
+package "Couche Données" {
+    [Base Connaissances]
+    [Base Données]
+    [Cache Redis]
+}
+
+package "Couche Intégration" {
+    [Authentification]
+    [Services Plateforme]
+    [Support Humain]
+}
+
+database "PostgreSQL" as DB
+queue "Celery" as Queue
+
+[Interface Web] --> [API REST]
+[Widget Chat] --> [API REST]
+[Panneau Admin] --> [API REST]
+
+[API REST] --> [Moteur NLP]
+[API REST] --> [Gestionnaire Dialogue]
+[API REST] --> [Générateur Réponses]
+
+[Moteur NLP] --> [Base Connaissances]
+[Gestionnaire Dialogue] --> [Base Connaissances]
+[Générateur Réponses] --> [Base Connaissances]
+
+[API REST] --> DB
+[Gestionnaire Dialogue] --> DB
+[Base Connaissances] --> DB
+
+[API REST] --> Queue
+[Gestionnaire Dialogue] --> Queue
+
+[API REST] --> [Authentification]
+[Gestionnaire Dialogue] --> [Services Plateforme]
+[Gestionnaire Dialogue] --> [Support Humain]
+
+[Gestionnaire Dialogue] --> [Cache Redis]
+
+@enduml
+
+' ============================================
+' DIAGRAMME D'ÉTATS - GESTIONNAIRE DE DIALOGUE
+' ============================================
+
+@startuml
+[*] --> AttenteMessage: Initialisation
+
+AttenteMessage --> TraitementMessage: Message reçu
+
+TraitementMessage --> AnalyseNLP: Analyser message
+
+AnalyseNLP --> RechercheIntention: Intention identifiée
+AnalyseNLP --> DemandeClarification: Intention ambiguë
+
+RechercheIntention --> GenerationReponse: Intention trouvée
+RechercheIntention --> Escalade: Intention non trouvée
+
+GenerationReponse --> MiseAJourContexte: Réponse générée
+
+MiseAJourContexte --> AttenteMessage: Contexte mis à jour
+MiseAJourContexte --> AttenteMessage: Contexte complet
+
+DemandeClarification --> AttenteMessage: Clarification envoyée
+
+Escalade --> TransfertHumain: Escalade requise
+
+TransfertHumain --> AttenteMessage: Transfert effectué
+
+note right of AttenteMessage
+  État initial
+  En attente de message utilisateur
+end note
+
+note right de TraitementMessage
+  Traitement du message
+  Préparation pour analyse NLP
+end note
+
+note right of AnalyseNLP
+  Analyse NLP
+  Tokenization, lemmatization,
+  extraction d'entités
+end note
+
+note right of RechercheIntention
+  Recherche intention
+  Interrogation base de connaissances
+end note
+
+note right of GenerationReponse
+  Génération réponse
+  Sélection template,
+  personnalisation
+end note
+
+note right of MiseAJourContexte
+  Mise à jour contexte
+  Historique messages,
+  variables contexte
+end note
+
+note right of Escalade
+  Escalade
+  Transfert vers support humain
+end note
+
+@enduml
+
+' ============================================
+' DIAGRAMME DE DÉPLOIEMENT
+' ============================================
+
+@startuml
+node "Serveur Web" {
+    component "Nginx" as NGINX
+    component "Application Flask" as APP
+}
+
+node "Serveur Base de Données" {
+    database "PostgreSQL" as PG
+}
+
+node "Serveur Cache" {
+    database "Redis" as REDIS
+}
+
+node "Serveur Worker" {
+    component "Celery Worker" as WORKER
+}
+
+cloud "CDN" as CDN
+
+node "Client" {
+    component "Navigateur" as BROWSER
+}
+
+BROWSER --> NGINX: HTTPS
+NGINX --> APP: Reverse Proxy
+APP --> PG: Requêtes SQL
+APP --> REDIS: Cache
+APP --> WORKER: Tasks Queue
+WORKER --> PG: Requêtes SQL
+CDN --> BROWSER: Static Assets
+
+@enduml
+
+' ============================================
+' SPÉCIFICATIONS DES ATTRIBUTS DÉTAILLÉES
+' ============================================
+
+@startuml
+enum TypeMessage {
+    ENTRANT
+    SORTANT
+    SYSTEME
+}
+
+enum Profil {
+    ADMIN, 
+    UTILISATEUR, 
+    VISITEUR
+}
+
+enum StatutConversation {
+    ACTIVE,
+    EN_ATTENTE,
+    TRANSFEREE,
+    ARCHIVEE
+}
+
+enum TypeEntite {
+    DATE,
+    NOM,
+    NUMERO,
+    EMAIL,
+    URL
+}
+
+class Utilisateur {
+    - id: UUID
+    - nom: String (max: 100)
+    - email: String (max: 255, unique)
+    - motDePasse: String (hash)
+    - profil: Profil
+    - dateCreation: DateTime
+    - derniereConnexion: DateTime
+    - actif: Boolean
+}
+
+class Message {
+    - id: UUID
+    - contenu: Text
+    - type: TypeMessage
+    - horodatage: DateTime
+    - idConversation: UUID (FK)
+    - idUtilisateur: UUID (FK)
+}
+
+class Conversation {
+    - id: UUID
+    - idUtilisateur: UUID (FK)
+    - dateDebut: DateTime
+    - dateFin: DateTime (nullable)
+    - statut: StatutConversation
+    - contexte: JSON
+    - scoreSatisfaction: Integer (1-5, nullable)
+}
+
+class Intention {
+    - id: UUID
+    - nom: String (max: 100, unique)
+    - description: Text
+    - categorie: String
+    - expressions: JSON (array)
+    - reponses: JSON (array)
+    - confianceMinimale: Float (default: 0.7)
+    - dateCreation: DateTime
+    - dateMiseAJour: DateTime
+}
+
+class Entite {
+    - id: UUID
+    - nom: String (max: 100, unique)
+    - type: TypeEntite
+    - valeurs: JSON (array)
+    - patterns: JSON (array)
+    - dateCreation: DateTime
+}
+
+@enduml
+
+' ============================================
+' FIN DU FICHIER DE MODÉLISATION
+' ============================================

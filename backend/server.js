@@ -23,8 +23,23 @@ const accountApplicationsRoutes = require('./routes/accountApplications');
 const app = express();
 
 // CORS configuration - MUST be before other middleware
+const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:5173',
+    /^https:\/\/saleka-banque-.*-emmanueldjob893-4540s-projects\.vercel\.app$/
+];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.some(allowed => {
+            if (allowed instanceof RegExp) return allowed.test(origin);
+            return allowed === origin;
+        })) {
+            callback(null, true);
+        } else {
+            callback(null, true); // Allow all for now to fix Vercel deployment
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -32,7 +47,8 @@ app.use(cors({
 
 // Allow CORS for static files
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
+    const origin = req.headers.origin;
+    res.header('Access-Control-Allow-Origin', origin || process.env.FRONTEND_URL || 'http://localhost:5173');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');

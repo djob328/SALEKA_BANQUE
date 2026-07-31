@@ -7,18 +7,23 @@ const router = express.Router();
 
 // Get user's account
 router.get('/', authenticateToken, async (req, res) => {
+    console.log('[BACKEND] GET /api/accounts for user:', req.user.id);
     try {
         const [accounts] = await pool.query(
             'SELECT * FROM accounts WHERE user_id = ?',
             [req.user.id]
         );
 
+        console.log('[BACKEND] Accounts found:', accounts.length);
+
         if (accounts.length === 0) {
+            console.log('[BACKEND] No account found for user:', req.user.id);
             return res.status(404).json(null);
         }
 
         res.json(accounts[0]);
     } catch (error) {
+        console.error('[BACKEND] Get account error:', error);
         logger.error('Get account error:', error);
         res.status(500).json({ error: 'Failed to get account' });
     }

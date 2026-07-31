@@ -12,18 +12,22 @@ const Cards = () => {
   const [newPin, setNewPin] = useState('');
 
   useEffect(() => {
+    console.log('[Cards] Component mounted');
     fetchCards();
   }, []);
 
   const fetchCards = async () => {
+    console.log('[Cards] Fetching cards, API_URL:', API_URL);
     try {
       const token = localStorage.getItem('token');
+      console.log('[Cards] Token found:', !!token);
       const response = await axios.get(`${API_URL}/api/cards`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('[Cards] Cards fetched successfully:', response.data.cards?.length);
       setCards(response.data.cards || []);
     } catch (error) {
-      console.error('Error fetching cards:', error);
+      console.error('[Cards] Error fetching cards:', error);
     } finally {
       setLoading(false);
     }

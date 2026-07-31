@@ -15,12 +15,15 @@ const Transfers = () => {
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  console.log('[Transfers] Component mounted');
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleTransfer = async (e) => {
     e.preventDefault();
+    console.log('[Transfers] Transfer attempt, API_URL:', API_URL);
     setLoading(true);
     try {
       const token = localStorage.getItem('token');

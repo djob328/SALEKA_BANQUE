@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Get user's transactions
 router.get('/', authenticateToken, async (req, res) => {
+    console.log('[BACKEND] GET /api/transactions for user:', req.user.id);
     try {
         // Get user's account first
         const [accounts] = await pool.query(
@@ -14,7 +15,10 @@ router.get('/', authenticateToken, async (req, res) => {
             [req.user.id]
         );
 
+        console.log('[BACKEND] Accounts found for transactions:', accounts.length);
+
         if (accounts.length === 0) {
+            console.log('[BACKEND] No account found for user:', req.user.id);
             return res.status(404).json([]);
         }
 
@@ -26,8 +30,10 @@ router.get('/', authenticateToken, async (req, res) => {
             [accountId]
         );
 
+        console.log('[BACKEND] Transactions found:', transactions.length);
         res.json(transactions);
     } catch (error) {
+        console.error('[BACKEND] Get transactions error:', error);
         logger.error('Get transactions error:', error);
         res.status(500).json({ error: 'Failed to get transactions' });
     }

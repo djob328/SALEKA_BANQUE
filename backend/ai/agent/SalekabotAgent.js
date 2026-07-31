@@ -10,9 +10,15 @@ const db = require('../../config/database');
 
 class SalekabotAgent {
     constructor() {
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
+        // Initialize OpenAI only if API key is available
+        if (process.env.OPENAI_API_KEY) {
+            this.openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY
+            });
+        } else {
+            this.openai = null;
+            console.log('OpenAI API key not configured. Chatbot will run in limited mode.');
+        }
         
         this.systemPrompt = `Tu es SALEKABOT, l'assistant officiel de SALEKABANQUE.
 
@@ -38,13 +44,25 @@ Ton rôle est d'aider les clients avec:
 
     /**
      * Process user message and generate response
-     * @param {number} userId - User ID
      * @param {string} message - User message
      * @param {string} sessionId - Chat session ID
+     * @param {number} userId - User ID
      * @returns {Promise<Object>} Agent response
      */
-    async processMessage(userId, message, sessionId) {
+    async processMessage(message, sessionId, userId = null) {
         try {
+            // Check if OpenAI is configured
+            if (!this.openai) {
+                // Return fallback response when OpenAI is not configured
+                await this.saveMessage(sessionId, 'user', message);
+                await this.saveMessage(sessionId, 'assistant', 'Le service de chatbot n\'est pas configuré. Veuillez contacter le support pour activer cette fonctionnalité.');
+                return {
+                    success: false,
+                    message: 'Le service de chatbot n\'est pas configuré. Veuillez contacter le support pour activer cette fonctionnalité.',
+                    requiresAction: false
+                };
+            }
+
             // Get conversation history
             const history = await this.getConversationHistory(sessionId, 5);
 

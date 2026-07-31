@@ -14,6 +14,7 @@ import {
   Users,
   Building2
 } from 'lucide-react'
+import { API_URL } from '../config/api';
 import { useState, useEffect } from 'react'
 
 const Layout = () => {
@@ -54,7 +55,7 @@ const Layout = () => {
         return user.profile_photo
       }
       const filename = user.profile_photo.split('/').pop()
-      return `http://localhost:5000/api/auth/profile-photo/${filename}`
+      return `${API_URL}/api/auth/profile-photo/${filename}`
     }
     return null
   }

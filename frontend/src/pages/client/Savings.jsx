@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PiggyBank, Target, Plus, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const Savings = () => {
   const [activeTab, setActiveTab] = useState('accounts');
@@ -16,10 +17,10 @@ const Savings = () => {
     try {
       const token = localStorage.getItem('token');
       const [accountsRes, goalsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/savings/accounts', {
+        axios.get(`${API_URL}/api/savings/accounts`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:5000/api/savings/goals', {
+        axios.get(`${API_URL}/api/savings/goals`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);

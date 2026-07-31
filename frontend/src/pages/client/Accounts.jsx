@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, CreditCard, TrendingUp, FileText } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -16,13 +17,13 @@ const Accounts = () => {
     try {
       const token = localStorage.getItem('token');
       const [accountsRes, transactionsRes, cardsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/accounts', {
+        axios.get(`${API_URL}/api/accounts`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:5000/api/transactions?limit=5', {
+        axios.get(`${API_URL}/api/transactions?limit=5`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:5000/api/cards', {
+        axios.get(`${API_URL}/api/cards`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);

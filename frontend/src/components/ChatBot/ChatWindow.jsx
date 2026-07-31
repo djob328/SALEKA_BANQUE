@@ -3,6 +3,7 @@ import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const ChatWindow = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +57,7 @@ const ChatWindow = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/chatbot/message',
+        `${API_URL}/api/chatbot/message`,
         { message: messageContent, sessionId },
         {
           headers: {

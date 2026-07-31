@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Calendar, UserPlus, Clock } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const Transfers = () => {
   const [activeTab, setActiveTab] = useState('immediate');
@@ -24,7 +25,7 @@ const Transfers = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/transfers',
+        `${API_URL}/api/transfers`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

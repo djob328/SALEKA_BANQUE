@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
+import { API_URL } from '../../config/api'
 import { User, Calendar, MapPin, Briefcase, Globe, Save, AlertCircle, CheckCircle, Camera, Upload } from 'lucide-react'
 
 const Profile = () => {
@@ -131,7 +132,7 @@ const Profile = () => {
         return user.profile_photo
       }
       const filename = user.profile_photo.split('/').pop()
-      return `http://localhost:5000/api/auth/profile-photo/${filename}`
+      return `${API_URL}/api/auth/profile-photo/${filename}`
     }
     return null
   }

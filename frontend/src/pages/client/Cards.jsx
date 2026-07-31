@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Lock, Unlock, Key, Plus, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 const Cards = () => {
   const [cards, setCards] = useState([]);
@@ -17,7 +18,7 @@ const Cards = () => {
   const fetchCards = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/cards', {
+      const response = await axios.get(`${API_URL}/api/cards`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCards(response.data.cards || []);
@@ -33,7 +34,7 @@ const Cards = () => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/cards/${cardId}/block`, {}, {
+      await axios.post(`${API_URL}/api/cards/${cardId}/block`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Carte bloquée avec succès');
@@ -47,7 +48,7 @@ const Cards = () => {
   const handleUnblockCard = async (cardId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/cards/${cardId}/unblock`, {}, {
+      await axios.post(`${API_URL}/api/cards/${cardId}/unblock`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Carte débloquée avec succès');
@@ -63,7 +64,7 @@ const Cards = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:5000/api/cards/${selectedCard.id}/pin`,
+        `${API_URL}/api/cards/${selectedCard.id}/pin`,
         { oldPin, newPin },
         { headers: { Authorization: `Bearer ${token}` } }
       );

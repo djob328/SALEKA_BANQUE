@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { API_URL } from '../../config/api'
 import { 
   CheckCircle, 
   XCircle, 
@@ -191,7 +192,7 @@ const AccountApplications = () => {
     if (path.startsWith('http')) return path
     // Extract filename from path (handles both relative and absolute paths)
     const filename = path.split(/[\\/]/).pop()
-    return `http://localhost:5000/api/account-applications/document/${filename}`
+    return `${API_URL}/api/account-applications/document/${filename}`
   }
 
   const fetchDocument = async (path) => {

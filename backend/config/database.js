@@ -2,11 +2,12 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 // Create connection pool with promise support
+// Support both Railway MySQL variables and local environment variables
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'banque_pwa',
+    host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
+    user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '',
+    database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'banque_pwa',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,

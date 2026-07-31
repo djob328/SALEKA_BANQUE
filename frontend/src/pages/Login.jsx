@@ -13,6 +13,8 @@ const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  console.log('[Login] Component mounted');
+
   const handleChange = (e) => {
     setFormData({
       ...formData,

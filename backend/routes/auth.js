@@ -107,10 +107,11 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
+    console.log('[BACKEND] Login request received for email:', email);
     try {
         const { email, password } = req.body;
 
-        console.log('Login attempt for email:', email);
+        console.log('[BACKEND] Processing login for:', email);
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
@@ -122,9 +123,10 @@ router.post('/login', async (req, res) => {
             [email]
         );
 
-        console.log('Users found:', users.length);
+        console.log('[BACKEND] Users found:', users.length);
 
         if (users.length === 0) {
+            console.log('[BACKEND] User not found for email:', email);
             securityLogger.warn('Login attempt with non-existent email', { email, ip: req.ip });
             return res.status(401).json({ error: 'Invalid credentials' });
         }

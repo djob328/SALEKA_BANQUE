@@ -10,12 +10,15 @@ const Accounts = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[Accounts] Component mounted');
     fetchAccountData();
   }, []);
 
   const fetchAccountData = async () => {
+    console.log('[Accounts] Fetching account data, API_URL:', API_URL);
     try {
       const token = localStorage.getItem('token');
+      console.log('[Accounts] Token found:', !!token);
       const [accountsRes, transactionsRes, cardsRes] = await Promise.all([
         axios.get(`${API_URL}/api/accounts`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -28,11 +31,16 @@ const Accounts = () => {
         })
       ]);
 
+      console.log('[Accounts] Data fetched successfully:', {
+        accounts: accountsRes.data.accounts?.length,
+        transactions: transactionsRes.data.transactions?.length,
+        cards: cardsRes.data.cards?.length
+      });
       setAccounts(accountsRes.data.accounts || []);
       setTransactions(transactionsRes.data.transactions || []);
       setCards(cardsRes.data.cards || []);
     } catch (error) {
-      console.error('Error fetching account data:', error);
+      console.error('[Accounts] Error fetching account data:', error);
     } finally {
       setLoading(false);
     }

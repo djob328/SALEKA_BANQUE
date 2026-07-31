@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
+import { API_URL } from '../config/api'
 
 const AuthContext = createContext(null)
 
@@ -41,27 +42,30 @@ export const AuthProvider = ({ children }) => {
   }
 
   const login = async (email, password) => {
+    console.log('[AuthContext] Login attempt, API_URL:', API_URL);
     try {
-      const response = await axios.post('/api/auth/login', { email, password })
+      const response = await axios.post(`${API_URL}/api/auth/login`, { email, password })
       const { token: newToken, user: userData } = response.data
-      
+      console.log('[AuthContext] Login successful, user:', userData.email);
       localStorage.setItem('token', newToken)
       setToken(newToken)
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
       setUser(userData)
-      
+
       return { success: true, user: userData }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+      console.error('[AuthContext] Login error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed'
       }
     }
   }
 
   const register = async (firstName, lastName, email, password, phone) => {
+    console.log('[AuthContext] Register attempt, email:', email);
     try {
-      const response = await axios.post('/api/auth/register', { first_name: firstName, last_name: lastName, email, password, phone })
+      const response = await axios.post(`${API_URL}/api/auth/register`, { first_name: firstName, last_name: lastName, email, password, phone })
       return { success: true, data: response.data }
     } catch (error) {
       return { 

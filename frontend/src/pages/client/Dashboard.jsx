@@ -14,6 +14,7 @@ const ClientDashboard = () => {
   const [profilePhotoData, setProfilePhotoData] = useState(null)
 
   useEffect(() => {
+    console.log('[Dashboard] Component mounted, user:', user?.email);
     fetchData()
     if (user?.profile_photo) {
       fetchProfilePhoto()
